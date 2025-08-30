@@ -8,7 +8,6 @@ import { NextRequest } from "next/server";
 export async function POST(request: NextRequest) {
     const { username, name, email, password, birthDate, height, initialWeight, targetWeight } = await request.json()
 
-
     if ([username, name, email, password, birthDate, height, initialWeight, targetWeight].some((field) => field.trim() === "")) {
         return response(HttpStatusCode.LengthRequired, false, "All fields are required")
     }
@@ -42,3 +41,5 @@ export async function POST(request: NextRequest) {
         return response(HttpStatusCode.InternalServerError, false, `Something went wrong :: error ${error}`)
     }
 }
+
+// works perfectly
