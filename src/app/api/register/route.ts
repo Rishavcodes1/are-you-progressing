@@ -8,6 +8,7 @@ import { NextRequest } from "next/server";
 export async function POST(request: NextRequest) {
     const { username, name, email, password, birthDate, height, initialWeight, targetWeight } = await request.json()
 
+
     if ([username, name, email, password, birthDate, height, initialWeight, targetWeight].some((field) => field.trim() === "")) {
         return response(HttpStatusCode.LengthRequired, false, "All fields are required")
     }
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
             birthDate,
             height,
             initialWeight,
-            currentweight: initialWeight,
+            currentWeight: initialWeight,
             targetWeight
         })
 
@@ -38,6 +39,6 @@ export async function POST(request: NextRequest) {
 
         return response(HttpStatusCode.Ok, true, "User registered successfully")
     } catch (error) {
-        return response(HttpStatusCode.InternalServerError, false, "Something went wrong :: error")
+        return response(HttpStatusCode.InternalServerError, false, `Something went wrong :: error ${error}`)
     }
 }
