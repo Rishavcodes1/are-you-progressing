@@ -15,10 +15,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { AtSignIcon, LockIcon, MailIcon, IdCardIcon, WeightIcon, RulerIcon, Ruler, TargetIcon } from "lucide-react"
 import { registerSchemaValidation } from "@/schemas/register.schema"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { DatePicker } from "./DatePicker"
-
-
+import axios from "axios"
+import { useRouter } from "next/navigation"
 
 
 
@@ -27,6 +27,8 @@ export default function RegsiterForm() {
 
     const [step, setStep] = useState(1)
     const [userDetails, setUserDetails] = useState({})
+    const [isLoading, setIsLoading] = useState(false)
+    const router = useRouter()
 
     const validationSchema = [
         registerSchemaValidation.pick({ username: true, email: true, password: true, name: true }),
@@ -68,7 +70,7 @@ export default function RegsiterForm() {
     })
 
 
-    function onSubmit(data: any) {
+    async function onSubmit(data: any) {
 
         let updatedUserDetails = { ...userDetails, ...data }
         setUserDetails(updatedUserDetails)
@@ -77,7 +79,13 @@ export default function RegsiterForm() {
 
         }
         else {
-            console.log(updatedUserDetails)
+            setIsLoading(true)
+            axios.post("api/register", updatedUserDetails)
+                .then((data) => {
+                    setIsLoading(false)
+                    router.push("/")
+                })
+                .catch((err) => { console.log(err) })
         }
 
     }
@@ -233,7 +241,7 @@ export default function RegsiterForm() {
                         />
                     </>
                 }
-                <Button type="submit" className="w-full py-5 rounded-[5px] cursor-pointer">{step < 3 ? "next" : "register"}</Button>
+                <Button type="submit" className="w-full py-5 rounded-[5px] cursor-pointer">{isLoading ? "submitting..." : step < 3 ? "next" : "register"}</Button>
             </form>
         </Form>
 

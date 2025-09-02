@@ -81,8 +81,8 @@ export const registerSchemaValidation = zod.object({
         .nonempty({ error: "Password is required" })
         .min(8, { error: "Password must be atleast 8 chacters" })
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/, { error: "Password must contain 1 lowercase letter, 1 uppercase letter,1 number and 1 special character" }),
-    birthDate: zod
-        .date({ error: "Please select a valid date" })
+    birthDate: zod.coerce
+        .date<Date>({ error: "Please select a valid date" })
         .min(new Date("1900-01-01"), { error: "birthdate can't be less than january 1, 1990" })
         .max(new Date(), { error: "birthdate can't be greater than current date" }).optional(),
 

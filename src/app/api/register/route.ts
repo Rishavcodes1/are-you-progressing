@@ -1,16 +1,24 @@
 import connectToDatabase from "@/lib/connectToDatabase";
 import { User } from "@/models/user.model";
+import { registerSchemaValidation } from "@/schemas/register.schema";
 import { response } from "@/utils/createApiResponse";
 import { HttpStatusCode } from "axios";
 import { NextRequest } from "next/server";
+import * as zod from "zod"
 
 
 export async function POST(request: NextRequest) {
-    const { username, name, email, password, birthDate, height, initialWeight, targetWeight } = await request.json()
 
-    if ([username, name, email, password, birthDate, height, initialWeight, targetWeight].some((field) => field.trim() === "")) {
-        return response(HttpStatusCode.LengthRequired, false, "All fields are required")
+    const body = await request.json()
+    const parsedData = registerSchemaValidation.safeParse(body)
+
+    if (!parsedData.success) {
+        return response(HttpStatusCode.BadRequest, false, "All fields are required")
     }
+
+    const { username, name, email, password, birthDate, height, initialWeight, targetWeight } = parsedData.data
+
+
 
     try {
         await connectToDatabase()
