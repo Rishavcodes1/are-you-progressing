@@ -15,7 +15,6 @@ interface IExercise {
 interface IWorkout {
     _id?: mongoose.Types.ObjectId;
     userId: mongoose.Types.ObjectId;
-    date: Date;
     exercise: IExercise[],
     createdAt: Date;
     updatedAt: Date;
@@ -38,10 +37,6 @@ const workoutSchema = new Schema<IWorkout>({
     userId: {
         type: Schema.Types.ObjectId,
         ref: "User"
-    },
-    date: {
-        type: Date,
-        required: true
     },
     exercise: {
         type: [exerciseSchema],

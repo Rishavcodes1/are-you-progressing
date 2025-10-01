@@ -9,7 +9,7 @@ import { authOptions } from "../auth/[...nextauth]/authOptions";
 export async function GET(request: NextRequest) {
 
     const session = await getServerSession(authOptions)
-    if(!session?.user){
+    if (!session?.user) {
         return response(HttpStatusCode.Unauthorized, false, "Unauthorised user")
     }
 
@@ -18,7 +18,9 @@ export async function GET(request: NextRequest) {
     const year = searchParams.get("year")
     const day = searchParams.get("day")
 
-    let query: any = {userId:session.user.id};
+    let query: any = { userId: session.user.id };
+
+
 
     if (year && month && day) {
         const date = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
@@ -30,16 +32,25 @@ export async function GET(request: NextRequest) {
     } else if (month) {
         query.date = { $regex: `-${month.padStart(2, "0")}-` };
     }
+
+    if (year || month || day) {
+
+        query.date = new Date(query.date)
+    }
     try {
         await connectToDatabase()
 
+        console.log(query)
         const foundWeightLogs = await Weight.find(query).limit(10)
+        console.log("object")
+
+        console.log(foundWeightLogs)
 
         if (!foundWeightLogs) {
             return response(HttpStatusCode.NotFound, false, "No data found")
         }
 
-        return response(HttpStatusCode.Found, true, "Data fetched successfully", foundWeightLogs)
+        return response(HttpStatusCode.Ok, true, "Data fetched successfully", foundWeightLogs)
 
     } catch (error) {
         return response(HttpStatusCode.InternalServerError, false, `Something went wrong while fetching the Workout :: error`)

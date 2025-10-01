@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
         const userId = session.user.id
         const loggedWorkout = await Workout.create({
             userId,
-            date: new Date().toISOString().split("T")[0],
             exercise
         })
 

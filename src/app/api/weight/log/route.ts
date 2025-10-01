@@ -11,25 +11,32 @@ import { User } from "@/models/user.model";
 export async function POST(request: NextRequest) {
 
     const session = await getServerSession(authOptions)
+
+
     if (!session?.user) {
         return response(HttpStatusCode.Unauthorized, false, "Unauthorised user")
     }
 
-    const { weight, photoUrl } = await request.json()
-    if (weight.trim() === "" || photoUrl.trim() === "") {
+    const { weight } = await request.json()
+    if (!weight) {
         return response(HttpStatusCode.LengthRequired, false, "weight and photo both are required")
     }
 
     try {
         await connectToDatabase()
         const userId = session.user.id
-        
+
+        const existingWeight = await Weight.findOne({
+            $and: [{ userId }, { date: new Date().toISOString().split("T")[0] }]
+        })
+
+        if (existingWeight) {
+            return response(HttpStatusCode.Conflict, false, "Log for the given date already exist")
+        }
+
         const loggedWeight = await Weight.create({
             userId,
             weight,
-            date: new Date().toISOString().split("T")[0],
-            photo: photoUrl,
-            time: new Date().toLocaleTimeString()
         })
 
         if (!loggedWeight) {
@@ -46,6 +53,7 @@ export async function POST(request: NextRequest) {
 
 
     } catch (error) {
+        console.log(error)
         return response(HttpStatusCode.InternalServerError, false, "Something went wrong while logging the weight :: error")
     }
 }

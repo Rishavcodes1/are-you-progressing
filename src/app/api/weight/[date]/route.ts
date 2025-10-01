@@ -7,9 +7,9 @@ import { NextRequest } from "next/server";
 import { authOptions } from "../../auth/[...nextauth]/authOptions";
 HttpStatusCode
 
-export async function GET(request: NextRequest, { params }: { params: { date: Date } }) {
+export async function GET(request: NextRequest, { params }: { params: { date: string } }) {
 
-    const { date } = params
+    const { date } = await params
     const session = await getServerSession(authOptions)
     if (!session?.user) {
         return response(HttpStatusCode.Unauthorized, false, "Unauthorised user")
@@ -19,14 +19,14 @@ export async function GET(request: NextRequest, { params }: { params: { date: Da
         const userId = session.user.id
 
         const foundWeightLog = await Weight.findOne({
-            $and: [{ userId: userId }, { date: date }]
+            $and: [{ userId: userId }, { date: new Date(date) }]
         })
 
         if (!foundWeightLog) {
             return response(HttpStatusCode.NotFound, false, `Weight log not found for the date ${date}`)
         }
 
-        return response(HttpStatusCode.Found, true, `Weight log for the date ${date} fetched successfully`)
+        return response(HttpStatusCode.Ok, true, `Weight log for the date ${date} fetched successfully`, foundWeightLog)
 
     } catch (error) {
         return response(HttpStatusCode.InternalServerError, false, `Something went wrong while fetching the weight of ${date} :: error`)

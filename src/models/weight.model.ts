@@ -4,9 +4,6 @@ interface IWeight {
     _id?: mongoose.Types.ObjectId
     userId: mongoose.Types.ObjectId;
     weight: number;
-    date: Date;
-    photo: string;
-    time?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -19,18 +16,7 @@ const weightSchema = new Schema<IWeight>({
     weight: {
         type: Number,
         required: true
-    },
-    date: {
-        type: Date,
-        required: true,
-    },
-    photo: {
-        type: String,
-        required: true
-    },
-    time: {
-        type: Date,
-    },
+    }
 
 }, { timestamps: true })
 

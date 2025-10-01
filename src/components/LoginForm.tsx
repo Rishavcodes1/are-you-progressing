@@ -17,9 +17,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { loginSchemaValidation } from "@/schemas/login.schema"
 import { AtSignIcon, LockIcon } from "lucide-react"
-
-
-
+import { signIn } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 
 export default function LoginForm() {
@@ -33,8 +32,19 @@ export default function LoginForm() {
 
     })
 
-    function onSubmit(values: zod.infer<typeof loginSchemaValidation>) {
-        console.log(values)
+    const router = useRouter()
+
+    async function onSubmit(values: zod.infer<typeof loginSchemaValidation>) {
+        const response = await signIn("credentials",
+            {
+                redirect: false,
+                identifier: values.identifier,
+                password: values.password
+            })
+
+        if (response?.ok) {
+            router.push("/")
+        }
     }
     return (
 

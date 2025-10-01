@@ -16,6 +16,7 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
 
+
                 if (!credentials?.identifier || !credentials?.password) {
                     throw new Error("Both fields are required")
                 }
@@ -34,6 +35,7 @@ export const authOptions: NextAuthOptions = {
                         throw new Error("Invalid password")
                     }
 
+
                     return foundUser
 
                 } catch (error) {
@@ -46,25 +48,32 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async jwt({ token, user }) {
 
-            token._id = user.id;
-            token.email = user.email;
+            if (user) {
+
+                token._id = user.id;
+                token.email = user.email;
+            }
 
             return token
         },
         async session({ session, token }) {
-            session.user.email = token.email;
-            session.user.name = token.name;
-            session.user.id = token._id as string;
-            session.user.username = token.username
+            if (token) {
+
+                session.user.email = token.email;
+                session.user.name = token.name;
+                session.user.id = token._id as string;
+                session.user.username = token.username
+            }
             return session
         }
     },
     session: {
-        strategy: "jwt"
+        strategy: "jwt",
+        maxAge: 30 * 24 * 3600
     },
     pages: {
         signIn: "/login",
         error: "/login"
     },
-    secret: process.env.NEXTAUTH_SECRET
+    secret: process.env.NEXTAUTH_SECRET!
 }

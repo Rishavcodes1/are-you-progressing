@@ -13,21 +13,21 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { AtSignIcon, LockIcon, MailIcon, IdCardIcon, WeightIcon, RulerIcon, Ruler, TargetIcon } from "lucide-react"
+import { AtSignIcon, LockIcon, MailIcon, IdCardIcon, WeightIcon, RulerIcon, Ruler, TargetIcon, Loader, Loader2 } from "lucide-react"
 import { registerSchemaValidation } from "@/schemas/register.schema"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { DatePicker } from "./DatePicker"
-import axios from "axios"
+import axios, { AxiosError } from "axios"
 import { useRouter } from "next/navigation"
-
-
+import { useDebounceCallback, useDebounceValue } from "usehooks-ts"
+import { ApiResponse } from "@/types/ApiResponse"
 
 
 export default function RegsiterForm() {
 
     const [step, setStep] = useState(1)
     const [userDetails, setUserDetails] = useState({})
-    const [isLoading, setIsLoading] = useState(false)
+    const [isFormSubmitting, setIsFormSubmitting] = useState(false)
     const router = useRouter()
 
     const validationSchema = [
@@ -69,8 +69,47 @@ export default function RegsiterForm() {
 
     })
 
+    const username = form.watch("username")
+    const [debouncedUsername] = useDebounceValue(username, 500)
+
+
+    const [isCheckingUsername, setIsCheckingUsername] = useState(false)
+    type usernameMessage = {
+        success: boolean;
+        message: string;
+    }
+    const [usernameMessage, setUsernameMessage] = useState<usernameMessage>()
+
+
+    async function checkUsername(name: string) {
+        if (!username) return
+
+        setIsCheckingUsername(true)
+        setUsernameMessage({ success: false, message: "" })
+        axios.post("/api/check-username-unique", { username: name })
+            .then((data) => {
+                setUsernameMessage({ success: true, message: data.data?.message })
+
+            })
+            .catch((error) => {
+                const axiosError = error as AxiosError<ApiResponse>
+                setUsernameMessage({ success: false, message: axiosError.response?.data?.message ?? "error checking username availability" })
+            })
+            .finally(() => {
+                setIsCheckingUsername(false)
+            })
+
+
+
+    }
+    useEffect(() => {
+        checkUsername(debouncedUsername)
+
+    }, [debouncedUsername])
 
     async function onSubmit(data: any) {
+
+        if (!usernameMessage?.success) return
 
         let updatedUserDetails = { ...userDetails, ...data }
         setUserDetails(updatedUserDetails)
@@ -79,10 +118,10 @@ export default function RegsiterForm() {
 
         }
         else {
-            setIsLoading(true)
+            setIsFormSubmitting(true)
             axios.post("api/register", updatedUserDetails)
                 .then((data) => {
-                    setIsLoading(false)
+                    setIsFormSubmitting(false)
                     router.push("/")
                 })
                 .catch((err) => { console.log(err) })
@@ -108,6 +147,16 @@ export default function RegsiterForm() {
 
                                             <Input placeholder={field.name} className="bg-gray-50 py-5 pr-8" {...field} />
                                             <AtSignIcon className="absolute top-[25%] right-2 scale-75 text-muted-foreground" />
+                                            {!!isCheckingUsername &&
+                                                <div className="text-xs absolute text-green-700 flex items-center gap-1 mt-1">
+
+                                                    <Loader2 className="animate-spin size-4" />
+                                                    <span className="">checking username....</span>
+                                                </div>
+                                            }
+                                            {
+                                                !!usernameMessage && <span className={`text-xs absolute ${usernameMessage.success ? "text-green-700" : "text-red-700"}`}>{usernameMessage.message}</span>
+                                            }
                                         </div>
                                     </FormControl>
                                     <FormMessage />
@@ -241,7 +290,7 @@ export default function RegsiterForm() {
                         />
                     </>
                 }
-                <Button type="submit" className="w-full py-5 rounded-[5px] cursor-pointer">{isLoading ? "submitting..." : step < 3 ? "next" : "register"}</Button>
+                <Button type="submit" className="w-full py-5 rounded-[5px] cursor-pointer" disabled={isFormSubmitting}>{isFormSubmitting ? "submitting..." : step < 3 ? "next" : "register"}</Button>
             </form>
         </Form>
 
